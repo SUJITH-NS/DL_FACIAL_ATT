@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Mark Attendance - Student Portal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Facial Self-Attendance</h1>
+        <p class="page-subtitle">Mark your attendance for ongoing active class sessions using face verification</p>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <!-- WEBCAM VERIFICATION CAMERA BOX -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-camera" style="color:var(--primary); margin-right:8px;"></i> Face Scanner</div>
+        </div>
+        <div class="camera-box">
+            <video id="self-att-video" autoplay playsinline muted></video>
+            <div class="camera-overlay"></div>
+        </div>
+        <div style="text-align:center; font-size:0.875rem; color:var(--slate-500);">
+            Ensure your face is clearly lit and centered in the circle frame.
+        </div>
+    </div>
+
+    <!-- ACTIVE CLASS SESSIONS LIST -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-clock" style="color:var(--success); margin-right:8px;"></i> Ongoing Active Sessions</div>
+        </div>
+
+        {% if active_sessions %}
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+            {% for sess in active_sessions %}
+            <div style="padding: 16px; border: 1px solid var(--slate-200); border-radius: var(--radius-md); background-color: var(--slate-50); display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <div style="font-weight: 700; font-size: 1.1rem; color: var(--slate-900);">{{ sess.subject }}</div>
+                    <div style="font-size: 0.85rem; color: var(--slate-500); margin-top: 4px;">
+                        Hour {{ sess.hour }} | Session Date: {{ sess.session_date }}
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--slate-600); margin-top: 2px;">
+                        Class: {{ sess.department }} - Year {{ sess.year }} (Sec {{ sess.section }})
+                    </div>
+                </div>
+                <div>
+                    <button id="btn-mark-{{ sess.session_id }}" class="btn btn-success" onclick="markSelfAttendance({{ sess.session_id }});">
+                        <i class="fa-solid fa-camera"></i> Mark Attendance
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align:center; padding:40px 20px; color:var(--slate-500);">
+            <i class="fa-solid fa-calendar-xmark" style="font-size:2.5rem; color:var(--slate-300); margin-bottom:12px; display:block;"></i>
+            <h3>No Active Class Sessions</h3>
+            <p style="font-size:0.9rem; margin-top:6px;">Your faculty has not started an active attendance session for your class at this time.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

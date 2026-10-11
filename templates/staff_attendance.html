@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Live Staff Attendance - Facial Attendance System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Live Facial Attendance Session</h1>
+        <p class="page-subtitle">Real-time AI face recognition attendance stream</p>
+    </div>
+    {% if active_session %}
+    <div>
+        <button class="btn btn-danger" onclick="handleStopSession({{ active_session.session_id }});">
+            <i class="fa-solid fa-square"></i> STOP ATTENDANCE
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+{% if active_session %}
+<!-- ACTIVE SESSION METRICS & CAMERA GRID -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+
+    <!-- CAMERA STREAM & RECOGNITION BOX -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-video" style="color:var(--primary); margin-right:8px;"></i> Live Attendance Camera</div>
+            <span id="live-status-badge" class="badge badge-ongoing">READY</span>
+        </div>
+        <div class="camera-box">
+            <video id="staff-live-video" autoplay playsinline muted></video>
+            <div class="camera-overlay"></div>
+        </div>
+
+        <div style="display:flex; justify-content:center; margin-bottom:16px;">
+            <button id="btn-start-stream" class="btn btn-primary" onclick="startStaffLiveStream({{ active_session.session_id }}); this.disabled=true;">
+                <i class="fa-solid fa-play"></i> Start Camera Stream
+            </button>
+        </div>
+
+        <!-- RECOGNITION LIVE CARDS -->
+        <div style="padding: 16px; background-color: var(--slate-50); border-radius: var(--radius-md); border: 1px solid var(--slate-200);">
+            <div style="font-size: 0.85rem; color: var(--slate-500); font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">Latest Identified Student</div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <div id="recognized-student-name" style="font-size: 1.25rem; font-weight: 700; color: var(--slate-900);">Awaiting camera feed...</div>
+                    <div id="recognized-status" style="font-size: 0.85rem; color: var(--slate-600); margin-top: 2px;">No student detected</div>
+                </div>
+                <div style="text-align: right;">
+                    <div id="recognized-confidence" style="font-size: 1.3rem; font-weight: 700; color: var(--primary);">0%</div>
+                    <div style="font-size: 0.75rem; color: var(--slate-500);">Match Confidence</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SESSION INFORMATION & LIVE ATTENDANCE TABLE -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-list-check" style="color:var(--success); margin-right:8px;"></i> Recorded Attendance (<span id="present-count">0</span>)</div>
+            <span class="badge badge-present">Session ID: {{ active_session.session_id }}</span>
+        </div>
+
+        <div style="padding: 12px 16px; background-color: var(--slate-50); border-radius: var(--radius-md); margin-bottom: 20px; font-size: 0.9rem;">
+            <div><strong>Subject:</strong> {{ active_session.subject }} (Hour {{ active_session.hour }})</div>
+            <div><strong>Class:</strong> {{ active_session.department }} - Year {{ active_session.year }} (Sec {{ active_session.section }})</div>
+            <div><strong>Date & Time:</strong> {{ active_session.session_date }} at {{ active_session.start_time }}</div>
+        </div>
+
+        <div class="table-responsive" style="max-height: 380px;">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>Student Name</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="session-att-tbody">
+                    <tr><td colspan="4" class="text-center" style="padding:20px;">No attendance recorded yet.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+{% else %}
+<div class="card" style="text-align:center; padding:50px;">
+    <i class="fa-solid fa-circle-exclamation" style="font-size:3rem; color:var(--warning); margin-bottom:16px;"></i>
+    <h2>No Active Session Specified</h2>
+    <p style="color:var(--slate-500); margin-top:8px;">Please select an allocated class from your dashboard to start an attendance session.</p>
+    <a href="{{ url_for('staff_dashboard') }}" class="btn btn-primary" style="margin-top:20px;">Return to Dashboard</a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if active_session %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    refreshStaffSessionAttendance({{ active_session.session_id }});
+    setInterval(() => refreshStaffSessionAttendance({{ active_session.session_id }}), 5000);
+});
+</script>
+{% endif %}
+{% endblock %}

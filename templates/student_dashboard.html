@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard - Facial Attendance Management System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Student Dashboard</h1>
+        <p class="page-subtitle">Welcome back, {{ student.name }} | Today is {{ today_day }}</p>
+    </div>
+    <div>
+        <button class="btn btn-primary" onclick="document.getElementById('face-reg-modal').style.display='flex';">
+            <i class="fa-solid fa-camera"></i> Register / Update Face
+        </button>
+    </div>
+</div>
+
+<!-- PROFILE & METRICS ROW -->
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px; margin-bottom: 24px;">
+    <!-- STUDENT PROFILE CARD -->
+    <div class="card" style="margin-bottom: 0;">
+        <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-id-card" style="color:var(--primary); margin-right:8px;"></i> Profile</div>
+            <span class="badge badge-present">Active</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.95rem;">
+            <div><strong style="color:var(--slate-500);">Student ID:</strong> {{ student.student_id }}</div>
+            <div><strong style="color:var(--slate-500);">Name:</strong> {{ student.name }}</div>
+            <div><strong style="color:var(--slate-500);">Email:</strong> {{ student.email }}</div>
+            <div><strong style="color:var(--slate-500);">Class:</strong> {{ student.department }} - Year {{ student.year }} (Sec {{ student.section }})</div>
+            <div><strong style="color:var(--slate-500);">Phone:</strong> {{ student.phone or 'N/A' }}</div>
+        </div>
+    </div>
+
+    <!-- ATTENDANCE METRICS CARDS -->
+    <div style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div class="metrics-grid" style="margin-bottom: 0;">
+            <div class="metric-card">
+                <div class="metric-icon blue"><i class="fa-solid fa-book-open"></i></div>
+                <div>
+                    <div class="metric-value">{{ summary.total_classes }}</div>
+                    <div class="metric-label">Total Completed Classes</div>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon green"><i class="fa-solid fa-user-check"></i></div>
+                <div>
+                    <div class="metric-value">{{ summary.present }}</div>
+                    <div class="metric-label">Classes Attended</div>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon red"><i class="fa-solid fa-user-xmark"></i></div>
+                <div>
+                    <div class="metric-value">{{ summary.absent }}</div>
+                    <div class="metric-label">Classes Missed</div>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon yellow"><i class="fa-solid fa-percent"></i></div>
+                <div>
+                    <div class="metric-value">{{ summary.percentage }}%</div>
+                    <div class="metric-label">Overall Attendance</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROGRESS BAR CARD -->
+        <div class="card" style="margin-bottom:0; margin-top:20px;">
+            <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 0.95rem;">
+                <span>Attendance Requirement Status</span>
+                <span>{{ summary.percentage }}% (Min Required: 75%)</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" style="width: {{ summary.percentage }}%; background: {% if summary.percentage >= 75 %}var(--success){% else %}var(--danger){% endif %};"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TODAY'S TIMETABLE SECTION -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fa-solid fa-clock" style="color:var(--primary); margin-right:8px;"></i> Today's Timetable ({{ today_day }})
+        </div>
+        <span style="font-size:0.85rem; color:var(--slate-500);"><i class="fa-solid fa-rotate" style="margin-right:4px;"></i> Auto-refreshes every 30s</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Hour</th>
+                    <th>Subject</th>
+                    <th>Faculty</th>
+                    <th>Time Interval</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="timetable-tbody">
+                <!-- Dynamically loaded from /api/student-timetable -->
+                <tr><td colspan="6" class="text-center" style="padding:20px;">Loading today's timetable...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- RECENT NOTIFICATIONS CARD -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><i class="fa-solid fa-bell" style="color:var(--warning); margin-right:8px;"></i> Notifications</div>
+    </div>
+    {% if notifications %}
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+        {% for notif in notifications %}
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background-color: var(--slate-50); border-radius: var(--radius-md); border-left: 4px solid var(--primary); {% if notif.is_read %}opacity:0.6;{% endif %}">
+            <div>
+                <div style="font-size: 0.9rem; color: var(--slate-800);">{{ notif.message }}</div>
+                <div style="font-size: 0.75rem; color: var(--slate-400); margin-top: 2px;">{{ notif.created_at }}</div>
+            </div>
+            {% if not notif.is_read %}
+            <button class="btn btn-sm btn-secondary" onclick="markNotifRead({{ notif.id }}, this.parentElement)">
+                <i class="fa-solid fa-check"></i> Mark read
+            </button>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; color: var(--slate-400); padding: 20px;">No notifications found.</div>
+    {% endif %}
+</div>
+
+<!-- FACIAL REGISTRATION MODAL -->
+<div id="face-reg-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(15,23,42,0.75); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+    <div class="card" style="width:100%; max-width:540px; margin-bottom:0;">
+        <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-camera"></i> Student Facial Registration</div>
+            <i class="fa-solid fa-xmark" style="cursor:pointer; font-size:1.2rem;" onclick="stopWebcam(); document.getElementById('face-reg-modal').style.display='none';"></i>
+        </div>
+        <div class="camera-box">
+            <video id="reg-video" autoplay playsinline muted></video>
+            <div class="camera-overlay"></div>
+        </div>
+        <div class="progress-bar-bg" style="margin-bottom:16px;">
+            <div id="reg-progress-fill" class="progress-bar-fill" style="width:0%;"></div>
+        </div>
+        <div id="reg-status-text" style="text-align:center; font-size:0.9rem; color:var(--slate-600); margin-bottom:16px;">
+            Position your face inside the circle and click Start.
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:12px;">
+            <button class="btn btn-secondary" onclick="stopWebcam(); document.getElementById('face-reg-modal').style.display='none';">Cancel</button>
+            <button id="btn-start-reg" class="btn btn-primary" onclick="startFaceRegistration();">
+                <i class="fa-solid fa-play"></i> Start Face Capture
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function loadStudentTimetable() {
+    try {
+        const resp = await fetch('/api/student-timetable');
+        const res = await resp.json();
+        const tbody = document.getElementById('timetable-tbody');
+        if (!tbody) return;
+
+        if (res.success && res.data && res.data.classes) {
+            if (res.data.classes.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center" style="padding:20px;">No classes scheduled for today.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = res.data.classes.map(c => {
+                let badgeClass = 'badge-upcoming';
+                if (c.status === 'PRESENT') badgeClass = 'badge-present';
+                if (c.status === 'ABSENT') badgeClass = 'badge-absent';
+                if (c.status === 'ONGOING') badgeClass = 'badge-ongoing';
+
+                let actionBtn = '-';
+                if (c.status === 'ONGOING' && c.can_mark && c.session_id) {
+                    actionBtn = `<a href="/student/attendance?session_id=${c.session_id}" class="btn btn-sm btn-success"><i class="fa-solid fa-camera"></i> Mark Attendance</a>`;
+                } else if (c.status === 'PRESENT') {
+                    actionBtn = `<span style="color:var(--success); font-weight:600;"><i class="fa-solid fa-circle-check"></i> Recorded</span>`;
+                }
+
+                return `
+                    <tr>
+                        <td><strong>Hour ${c.hour}</strong></td>
+                        <td>${c.subject}</td>
+                        <td>${c.staff_name}</td>
+                        <td>${c.start_time} - ${c.end_time}</td>
+                        <td><span class="badge ${badgeClass}">${c.status}</span></td>
+                        <td>${actionBtn}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    } catch (e) {
+        console.error("Error loading student timetable:", e);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadStudentTimetable();
+    setInterval(loadStudentTimetable, 30000); // 30s auto-refresh
+});
+</script>
+{% endblock %}

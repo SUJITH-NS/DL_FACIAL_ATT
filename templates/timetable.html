@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Timetable - Facial Attendance System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">College Timetable Schedule</h1>
+        <p class="page-subtitle">Centralized daily period allocations and timetable hours</p>
+    </div>
+</div>
+
+<!-- STANDARD TIMETABLE SLOTS REFERENCE CARD -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><i class="fa-solid fa-clock" style="color:var(--primary); margin-right:8px;"></i> Standard College Timetable Structure</div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+        <div style="padding: 12px; border-radius: var(--radius-md); background-color: var(--slate-50); border: 1px solid var(--slate-200);">
+            <div style="font-size: 0.8rem; color: var(--slate-500); font-weight: 600;">HOUR 1</div>
+            <div style="font-size: 1.05rem; font-weight: 700; color: var(--slate-900);">08:45 - 09:35</div>
+        </div>
+        <div style="padding: 12px; border-radius: var(--radius-md); background-color: var(--slate-50); border: 1px solid var(--slate-200);">
+            <div style="font-size: 0.8rem; color: var(--slate-500); font-weight: 600;">HOUR 2</div>
+            <div style="font-size: 1.05rem; font-weight: 700; color: var(--slate-900);">09:35 - 10:25</div>
+        </div>
+        <div style="padding: 12px; border-radius: var(--radius-md); background-color: var(--warning-light); border: 1px solid #fde047;">
+            <div style="font-size: 0.8rem; color: var(--warning); font-weight: 600;">TEA BREAK</div>
+            <div style="font-size: 1.05rem; font-weight: 700; color: var(--slate-900);">10:25 - 10:45</div>
+        </div>
+        <div style="padding: 12px; border-radius: var(--radius-md); background-color: var(--slate-50); border: 1px solid var(--slate-200);">
+            <div style="font-size: 0.8rem; color: var(--slate-500); font-weight: 600;">HOUR 3</div>
+            <div style="font-size: 1.05rem; font-weight: 700; color: var(--slate-900);">10:45 - 11:35</div>
+        </div>
+        <div style="padding: 12px; border-radius: var(--radius-md); background-color: var(--slate-50); border: 1px solid var(--slate-200);">
+            <div style="font-size: 0.8rem; color: var(--slate-500); font-weight: 600;">HOUR 4</div>
+            <div style="font-size: 1.05rem; font-weight: 700; color: var(--slate-900);">11:35 - 12:25</div>
+        </div>
+        <div style="padding: 12px; border-radius: var(--radius-md); background-color: var(--warning-light); border: 1px solid #fde047;">
+            <div style="font-size: 0.8rem; color: var(--warning); font-weight: 600;">LUNCH BREAK</div>
+            <div style="font-size: 1.05rem; font-weight: 700; color: var(--slate-900);">12:25 - 13:25</div>
+        </div>
+        <div style="padding: 12px; border-radius: var(--radius-md); background-color: var(--slate-50); border: 1px solid var(--slate-200);">
+            <div style="font-size: 0.8rem; color: var(--slate-500); font-weight: 600;">HOUR 5</div>
+            <div style="font-size: 1.05rem; font-weight: 700; color: var(--slate-900);">13:25 - 14:15</div>
+        </div>
+        <div style="padding: 12px; border-radius: var(--radius-md); background-color: var(--slate-50); border: 1px solid var(--slate-200);">
+            <div style="font-size: 0.8rem; color: var(--slate-500); font-weight: 600;">HOUR 6</div>
+            <div style="font-size: 1.05rem; font-weight: 700; color: var(--slate-900);">14:15 - 15:05</div>
+        </div>
+        <div style="padding: 12px; border-radius: var(--radius-md); background-color: var(--warning-light); border: 1px solid #fde047;">
+            <div style="font-size: 0.8rem; color: var(--warning); font-weight: 600;">TEA BREAK</div>
+            <div style="font-size: 1.05rem; font-weight: 700; color: var(--slate-900);">15:05 - 15:25</div>
+        </div>
+        <div style="padding: 12px; border-radius: var(--radius-md); background-color: var(--slate-50); border: 1px solid var(--slate-200);">
+            <div style="font-size: 0.8rem; color: var(--slate-500); font-weight: 600;">HOUR 7</div>
+            <div style="font-size: 1.05rem; font-weight: 700; color: var(--slate-900);">15:25 - 16:15</div>
+        </div>
+    </div>
+</div>
+
+<!-- DYNAMIC SCHEDULE DETAILS -->
+{% if timetable %}
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">Student Class Schedule ({{ timetable.day }})</div>
+    </div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Hour</th>
+                    <th>Subject</th>
+                    <th>Faculty</th>
+                    <th>Time Interval</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in timetable.classes %}
+                <tr>
+                    <td><strong>Hour {{ c.hour }}</strong></td>
+                    <td>{{ c.subject }}</td>
+                    <td>{{ c.staff_name }}</td>
+                    <td>{{ c.start_time }} - {{ c.end_time }}</td>
+                    <td>
+                        <span class="badge {% if c.status == 'PRESENT' %}badge-present{% elif c.status == 'ABSENT' %}badge-absent{% elif c.status == 'ONGOING' %}badge-ongoing{% else %}badge-upcoming{% endif %}">
+                            {{ c.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% elif staff_allocations %}
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">Faculty Allocations Grid</div>
+    </div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Day</th>
+                    <th>Hour</th>
+                    <th>Subject</th>
+                    <th>Class</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alloc in staff_allocations %}
+                <tr>
+                    <td><strong>{{ alloc.day }}</strong></td>
+                    <td>Hour {{ alloc.hour }}</td>
+                    <td>{{ alloc.subject }}</td>
+                    <td>{{ alloc.department }} Year {{ alloc.year }} Sec {{ alloc.section }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

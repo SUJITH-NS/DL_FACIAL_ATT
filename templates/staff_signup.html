@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Staff Signup - Facial Attendance Management System{% endblock %}
+
+{% block auth_content %}
+<div class="auth-wrapper">
+    <div class="auth-card" style="max-width: 500px;">
+        <div class="auth-header">
+            <h1 class="auth-title">Staff / Faculty Registration</h1>
+            <p class="auth-subtitle">Create a faculty portal account</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="toast {{ category }}" style="position:relative; top:0; right:0; margin-bottom:16px; width:100%;">
+                <div style="flex:1;">{{ message }}</div>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('staff_signup_page') }}" method="POST">
+            <div class="form-group">
+                <label class="form-label" for="staff_id">Staff ID</label>
+                <input type="text" id="staff_id" name="staff_id" class="form-control" placeholder="e.g. CSE012" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="name">Full Name & Title</label>
+                <input type="text" id="name" name="name" class="form-control" placeholder="e.g. Dr. Alan Turing" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="email">Faculty Email</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="faculty@college.edu" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="Create strong password" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="department">Department</label>
+                <select id="department" name="department" class="form-select" required>
+                    <option value="CSE" selected>CSE</option>
+                    <option value="ECE">ECE</option>
+                    <option value="EEE">EEE</option>
+                    <option value="MECH">MECH</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; margin-top: 10px;">
+                <i class="fa-solid fa-user-check"></i> Register Staff
+            </button>
+        </form>
+
+        <div style="margin-top: 20px; text-align: center; font-size: 0.875rem; color: var(--slate-500);">
+            Already registered? <a href="{{ url_for('login_page') }}" style="font-weight: 600;">Sign in here</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

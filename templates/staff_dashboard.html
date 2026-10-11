@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Staff Dashboard - Facial Attendance Management System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Faculty Dashboard</h1>
+        <p class="page-subtitle">Welcome, {{ staff.name }} ({{ staff.staff_id }}) | {{ staff.department }} Department</p>
+    </div>
+    <div>
+        <a href="{{ url_for('students_page') }}" class="btn btn-primary">
+            <i class="fa-solid fa-users"></i> View Class Roster
+        </a>
+    </div>
+</div>
+
+<!-- TODAY'S ALLOCATED CLASSES -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><i class="fa-solid fa-chalkboard" style="color:var(--primary); margin-right:8px;"></i> Today's Allocated Classes ({{ today_day }})</div>
+        <span style="font-size:0.85rem; color:var(--slate-500);">Current Hour: {% if current_hour %}Hour {{ current_hour }}{% else %}Break / Outside College Hours{% endif %}</span>
+    </div>
+
+    {% if allocations %}
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Hour</th>
+                    <th>Subject</th>
+                    <th>Class</th>
+                    <th>Day</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alloc in allocations %}
+                <tr>
+                    <td><strong>Hour {{ alloc.hour }}</strong></td>
+                    <td>{{ alloc.subject }}</td>
+                    <td>{{ alloc.department }} - Year {{ alloc.year }} (Sec {{ alloc.section }})</td>
+                    <td>{{ alloc.day }}</td>
+                    <td>
+                        {% if current_hour and current_hour == alloc.hour %}
+                        <button class="btn btn-sm btn-success" onclick="handleStartSession('{{ alloc.department }}', {{ alloc.year }}, '{{ alloc.section }}', '{{ alloc.day }}', '{{ alloc.subject }}', {{ alloc.hour }});">
+                            <i class="fa-solid fa-play"></i> START ATTENDANCE
+                        </button>
+                        {% else %}
+                        <button class="btn btn-sm btn-secondary" onclick="alert('You selected Hour {{ alloc.hour }}, but the current timetable hour is {% if current_hour %}Hour {{ current_hour }}{% else %}Break / Outside College Hours{% endif %}.');" title="Current time does not match this hour">
+                            <i class="fa-solid fa-lock"></i> Start Attendance
+                        </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align:center; padding:30px; color:var(--slate-500);">
+        No classes allocated for today ({{ today_day }}).
+    </div>
+    {% endif %}
+</div>
+
+<!-- WEEKLY TEACHING SCHEDULE -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><i class="fa-solid fa-calendar-week" style="color:var(--slate-700); margin-right:8px;"></i> Full Weekly Teaching Schedule</div>
+    </div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Day</th>
+                    <th>Hour</th>
+                    <th>Subject</th>
+                    <th>Department</th>
+                    <th>Year & Section</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alloc in all_allocations %}
+                <tr>
+                    <td><strong>{{ alloc.day }}</strong></td>
+                    <td>Hour {{ alloc.hour }}</td>
+                    <td>{{ alloc.subject }}</td>
+                    <td>{{ alloc.department }}</td>
+                    <td>Year {{ alloc.year }} - Sec {{ alloc.section }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

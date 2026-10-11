@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Error {{ error_code or 500 }} - Facial Attendance System{% endblock %}
+
+{% block content %}
+<div style="min-height: calc(100vh - 200px); display: flex; align-items: center; justify-content: center;">
+    <div class="card" style="max-width: 480px; width: 100%; text-align: center; padding: 40px;">
+        <div style="font-size: 4rem; font-weight: 700; color: var(--primary); font-family: 'Outfit', sans-serif; line-height: 1;">
+            {{ error_code or 500 }}
+        </div>
+        <h2 style="margin-top: 16px; font-size: 1.5rem; color: var(--slate-900);">An Error Occurred</h2>
+        <p style="color: var(--slate-500); margin-top: 8px; font-size: 0.95rem;">
+            {{ error_message or 'The page you requested could not be loaded.' }}
+        </p>
+        <div style="margin-top: 24px;">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                <i class="fa-solid fa-house"></i> Return to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

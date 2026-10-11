@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Facial Attendance Management System{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Custom Design System CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    {% if session.get('user_id') %}
+    <!-- TOP NAVBAR -->
+    <header class="navbar">
+        <div class="navbar-brand">
+            <div class="logo-icon"><i class="fa-solid fa-face-smile"></i></div>
+            <span>FACIAL ATTENDANCE SYSTEM</span>
+        </div>
+        <div class="navbar-user">
+            <div class="user-badge">
+                <div class="user-avatar">{{ current_user_name[0] if current_user_name else 'U' }}</div>
+                <div class="user-info">
+                    <span class="user-name">{{ current_user_name }}</span>
+                    <span class="user-role">{{ current_role }} ({{ current_user_id }})</span>
+                </div>
+            </div>
+            <a href="{{ url_for('logout') }}" class="btn btn-sm btn-secondary" title="Logout">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </a>
+        </div>
+    </header>
+
+    <div class="app-container">
+        <!-- SIDEBAR NAVIGATION -->
+        <aside class="sidebar">
+            <ul class="sidebar-nav">
+                {% if session.get('role') == 'STUDENT' %}
+                <li>
+                    <a href="{{ url_for('student_dashboard') }}" class="nav-link {% if request.path == url_for('student_dashboard') %}active{% endif %}">
+                        <i class="fa-solid fa-gauge-high"></i> <span class="nav-text">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('student_attendance_page') }}" class="nav-link {% if request.path == url_for('student_attendance_page') %}active{% endif %}">
+                        <i class="fa-solid fa-camera-retro"></i> <span class="nav-text">Mark Attendance</span>
+                    </a>
+                </li>
+                {% elif session.get('role') == 'STAFF' %}
+                <li>
+                    <a href="{{ url_for('staff_dashboard') }}" class="nav-link {% if request.path == url_for('staff_dashboard') %}active{% endif %}">
+                        <i class="fa-solid fa-chalkboard-user"></i> <span class="nav-text">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('students_page') }}" class="nav-link {% if request.path == url_for('students_page') %}active{% endif %}">
+                        <i class="fa-solid fa-user-graduate"></i> <span class="nav-text">Enrolled Students</span>
+                    </a>
+                </li>
+                {% endif %}
+                <li>
+                    <a href="{{ url_for('timetable_page') }}" class="nav-link {% if request.path == url_for('timetable_page') %}active{% endif %}">
+                        <i class="fa-solid fa-calendar-days"></i> <span class="nav-text">Timetable</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('reports_page') }}" class="nav-link {% if request.path == url_for('reports_page') %}active{% endif %}">
+                        <i class="fa-solid fa-chart-pie"></i> <span class="nav-text">Reports</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="main-content">
+            <!-- FLASH MESSAGES -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <div style="margin-bottom: 20px;">
+                  {% for category, message in messages %}
+                    <div class="toast {{ category }}" style="position:relative; top:0; right:0; margin-bottom:10px; width:100%;">
+                      <i class="fa-solid fa-circle-info"></i>
+                      <div style="flex:1;">{{ message }}</div>
+                      <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="this.parentElement.remove()"></i>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    {% else %}
+    <!-- AUTH PAGES (LOGIN / SIGNUP) WITHOUT SIDEBAR -->
+    {% block auth_content %}{% endblock %}
+    {% endif %}
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container"></div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

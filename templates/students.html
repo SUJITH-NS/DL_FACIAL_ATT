@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Enrolled Students - Faculty Portal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Enrolled Students Roster</h1>
+        <p class="page-subtitle">View student details and attendance percentages for authorized classes</p>
+    </div>
+</div>
+
+<!-- FILTER BAR CARD -->
+<div class="card" style="padding: 16px;">
+    <form action="{{ url_for('students_page') }}" method="GET" style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 160px;">
+            <label class="form-label" style="margin-bottom: 4px;">Department</label>
+            <select name="department" class="form-select">
+                <option value="CSE" {% if selected_dept == 'CSE' %}selected{% endif %}>CSE</option>
+                <option value="ECE" {% if selected_dept == 'ECE' %}selected{% endif %}>ECE</option>
+                <option value="EEE" {% if selected_dept == 'EEE' %}selected{% endif %}>EEE</option>
+                <option value="MECH" {% if selected_dept == 'MECH' %}selected{% endif %}>MECH</option>
+            </select>
+        </div>
+        <div style="flex: 1; min-width: 140px;">
+            <label class="form-label" style="margin-bottom: 4px;">Year</label>
+            <select name="year" class="form-select">
+                <option value="1" {% if selected_year == 1 %}selected{% endif %}>1st Year</option>
+                <option value="2" {% if selected_year == 2 %}selected{% endif %}>2nd Year</option>
+                <option value="3" {% if selected_year == 3 %}selected{% endif %}>3rd Year</option>
+                <option value="4" {% if selected_year == 4 %}selected{% endif %}>4th Year</option>
+            </select>
+        </div>
+        <div style="flex: 1; min-width: 120px;">
+            <label class="form-label" style="margin-bottom: 4px;">Section</label>
+            <input type="text" name="section" class="form-control" value="{{ selected_sec }}">
+        </div>
+        <div>
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-filter"></i> Filter Roster
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- STUDENTS LIST TABLE -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">Class Roster ({{ selected_dept }} Year {{ selected_year }} Sec {{ selected_sec }})</div>
+        <span class="badge badge-upcoming">{{ students | length }} Enrolled</span>
+    </div>
+
+    {% if students %}
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Student ID</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Face Registration</th>
+                    <th>Classes Attended</th>
+                    <th>Attendance %</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for st in students %}
+                <tr>
+                    <td><strong>{{ st.student_id }}</strong></td>
+                    <td>{{ st.name }}</td>
+                    <td>{{ st.email }}</td>
+                    <td>{{ st.phone or 'N/A' }}</td>
+                    <td>
+                        {% if st.face_registered > 0 %}
+                        <span class="badge badge-present"><i class="fa-solid fa-check"></i> Registered ({{ st.face_registered }} samples)</span>
+                        {% else %}
+                        <span class="badge badge-absent"><i class="fa-solid fa-xmark"></i> Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ st.present_cnt }} / {{ st.total_cnt }}</td>
+                    <td>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <strong style="width:50px;">{{ st.attendance_pct }}%</strong>
+                            <div class="progress-bar-bg" style="width:100px; margin:0;">
+                                <div class="progress-bar-fill" style="width:{{ st.attendance_pct }}%; background:{% if st.attendance_pct >= 75 %}var(--success){% else %}var(--danger){% endif %};"></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align:center; padding:30px; color:var(--slate-500);">
+        No students enrolled in {{ selected_dept }} Year {{ selected_year }} Sec {{ selected_sec }}.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

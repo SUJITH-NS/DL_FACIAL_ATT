@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance Reports - Facial Attendance System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Attendance Reports & Analytics</h1>
+        <p class="page-subtitle">Real-time attendance calculations derived from completed closed class sessions</p>
+    </div>
+    {% if session.get('role') == 'STUDENT' %}
+    <div>
+        <a href="/api/export-pdf-report" class="btn btn-primary" target="_blank">
+            <i class="fa-solid fa-file-pdf"></i> Download Official PDF Report
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- REPORT NAVIGATION TABS -->
+<div style="display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid var(--slate-200); padding-bottom: 2px;">
+    <button id="tab-btn-consolidated" class="btn btn-secondary active-tab" onclick="switchReportTab('consolidated');" style="border-radius: var(--radius-md) var(--radius-md) 0 0;">
+        <i class="fa-solid fa-chart-pie"></i> Consolidated Summary
+    </button>
+    <button id="tab-btn-course" class="btn btn-secondary" onclick="switchReportTab('course');" style="border-radius: var(--radius-md) var(--radius-md) 0 0;">
+        <i class="fa-solid fa-book"></i> Course Wise
+    </button>
+    <button id="tab-btn-daily" class="btn btn-secondary" onclick="switchReportTab('daily');" style="border-radius: var(--radius-md) var(--radius-md) 0 0;">
+        <i class="fa-solid fa-calendar-day"></i> Daily Attendance
+    </button>
+    <button id="tab-btn-weekly" class="btn btn-secondary" onclick="switchReportTab('weekly');" style="border-radius: var(--radius-md) var(--radius-md) 0 0;">
+        <i class="fa-solid fa-calendar-week"></i> Weekly Attendance
+    </button>
+</div>
+
+<!-- TAB 1: CONSOLIDATED SUMMARY -->
+<div id="report-pane-consolidated" class="report-pane">
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-icon blue"><i class="fa-solid fa-layer-group"></i></div>
+            <div>
+                <div id="summary-total" class="metric-value">0</div>
+                <div class="metric-label">Total Completed Classes</div>
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon green"><i class="fa-solid fa-user-check"></i></div>
+            <div>
+                <div id="summary-present" class="metric-value">0</div>
+                <div class="metric-label">Present Classes</div>
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon red"><i class="fa-solid fa-user-xmark"></i></div>
+            <div>
+                <div id="summary-absent" class="metric-value">0</div>
+                <div class="metric-label">Absent Classes</div>
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon yellow"><i class="fa-solid fa-percent"></i></div>
+            <div>
+                <div id="summary-percentage" class="metric-value">0%</div>
+                <div class="metric-label">Attendance Percentage</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TAB 2: COURSE WISE -->
+<div id="report-pane-course" class="report-pane" style="display:none;">
+    <div class="card">
+        <div class="card-header"><div class="card-title">Subject-Wise Attendance Breakdown</div></div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Total Classes</th>
+                        <th>Present</th>
+                        <th>Absent</th>
+                        <th>Percentage</th>
+                    </tr>
+                </thead>
+                <tbody id="course-tbody">
+                    <tr><td colspan="5" class="text-center" style="padding:20px;">Loading course data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- TAB 3: DAILY ATTENDANCE -->
+<div id="report-pane-daily" class="report-pane" style="display:none;">
+    <div class="card">
+        <div class="card-header"><div class="card-title">Daily Attendance History</div></div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Day</th>
+                        <th>Total Classes</th>
+                        <th>Present</th>
+                        <th>Absent</th>
+                        <th>Percentage</th>
+                    </tr>
+                </thead>
+                <tbody id="daily-tbody">
+                    <tr><td colspan="6" class="text-center" style="padding:20px;">Loading daily records...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- TAB 4: WEEKLY ATTENDANCE -->
+<div id="report-pane-weekly" class="report-pane" style="display:none;">
+    <div class="card">
+        <div class="card-header"><div class="card-title">Week-Wise Aggregated Summary</div></div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Week Interval</th>
+                        <th>Total Classes</th>
+                        <th>Present</th>
+                        <th>Absent</th>
+                        <th>Percentage</th>
+                    </tr>
+                </thead>
+                <tbody id="weekly-tbody">
+                    <tr><td colspan="5" class="text-center" style="padding:20px;">Loading weekly aggregates...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchReportTab(tabName) {
+    document.querySelectorAll('.report-pane').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('[id^="tab-btn-"]').forEach(b => {
+        b.style.backgroundColor = 'var(--slate-200)';
+        b.style.color = 'var(--slate-700)';
+    });
+
+    const targetPane = document.getElementById(`report-pane-${tabName}`);
+    const targetBtn = document.getElementById(`tab-btn-${tabName}`);
+    if (targetPane) targetPane.style.display = 'block';
+    if (targetBtn) {
+        targetBtn.style.backgroundColor = 'var(--primary)';
+        targetBtn.style.color = 'white';
+    }
+
+    if (tabName === 'consolidated') loadConsolidatedReport();
+    if (tabName === 'course') loadCourseReport();
+    if (tabName === 'daily') loadDailyReport();
+    if (tabName === 'weekly') loadWeeklyReport();
+}
+
+async function loadConsolidatedReport() {
+    try {
+        const res = await (await fetch('/api/student-attendance-summary')).json();
+        if (res.success && res.data) {
+            document.getElementById('summary-total').innerText = res.data.total_classes;
+            document.getElementById('summary-present').innerText = res.data.present;
+            document.getElementById('summary-absent').innerText = res.data.absent;
+            document.getElementById('summary-percentage').innerText = `${res.data.percentage}%`;
+        }
+    } catch(e) {}
+}
+
+async function loadCourseReport() {
+    try {
+        const res = await (await fetch('/api/student-course-attendance')).json();
+        const tbody = document.getElementById('course-tbody');
+        if (res.success && res.data) {
+            if (res.data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center" style="padding:20px;">No completed course sessions found.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = res.data.map(c => `
+                <tr>
+                    <td><strong>${c.subject}</strong></td>
+                    <td>${c.total_classes}</td>
+                    <td><span style="color:var(--success); font-weight:600;">${c.present}</span></td>
+                    <td><span style="color:var(--danger); font-weight:600;">${c.absent}</span></td>
+                    <td><strong>${c.percentage}%</strong></td>
+                </tr>
+            `).join('');
+        }
+    } catch(e) {}
+}
+
+async function loadDailyReport() {
+    try {
+        const res = await (await fetch('/api/student-daily-attendance')).json();
+        const tbody = document.getElementById('daily-tbody');
+        if (res.success && res.data) {
+            if (res.data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center" style="padding:20px;">No daily attendance records found.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = res.data.map(d => `
+                <tr>
+                    <td><strong>${d.date}</strong></td>
+                    <td>${d.day}</td>
+                    <td>${d.total_classes}</td>
+                    <td>${d.present}</td>
+                    <td>${d.absent}</td>
+                    <td><strong>${d.percentage}%</strong></td>
+                </tr>
+            `).join('');
+        }
+    } catch(e) {}
+}
+
+async function loadWeeklyReport() {
+    try {
+        const res = await (await fetch('/api/student-weekly-attendance')).json();
+        const tbody = document.getElementById('weekly-tbody');
+        if (res.success && res.data) {
+            if (res.data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center" style="padding:20px;">No weekly data available.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = res.data.map(w => `
+                <tr>
+                    <td><strong>${w.week}</strong></td>
+                    <td>${w.total_classes}</td>
+                    <td>${w.present}</td>
+                    <td>${w.absent}</td>
+                    <td><strong>${w.percentage}%</strong></td>
+                </tr>
+            `).join('');
+        }
+    } catch(e) {}
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    switchReportTab('consolidated');
+});
+</script>
+{% endblock %}
